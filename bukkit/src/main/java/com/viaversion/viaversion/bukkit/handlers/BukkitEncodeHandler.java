@@ -37,7 +37,7 @@ import java.util.List;
 
 @ChannelHandler.Sharable
 public final class BukkitEncodeHandler extends ViaEncodeHandler {
-    private boolean handledCompression = BukkitChannelInitializer.COMPRESSION_ENABLED_EVENT != null;
+    private boolean handledCompression = BukkitChannelInitializer.COMPRESSION_ENABLED_EVENT != null || Boolean.getBoolean("com.viaversion.disableLegacyCompressionReorder");
 
     public BukkitEncodeHandler(final UserConnection connection) {
         super(connection);
@@ -56,7 +56,7 @@ public final class BukkitEncodeHandler extends ViaEncodeHandler {
 
         final ByteBuf transformedBuf = ByteBufUtil.copy(ctx.alloc(), bytebuf);
         try {
-            final boolean needsCompression = !handledCompression && handleCompressionOrder(ctx, transformedBuf);
+            final boolean needsCompression = !handledCompression && connection.getProtocolInfo().compressionEnabled() && handleCompressionOrder(ctx, transformedBuf);
             connection.transformClientbound(transformedBuf, CancelEncoderException::generate);
             if (needsCompression) {
                 recompress(ctx, transformedBuf);
