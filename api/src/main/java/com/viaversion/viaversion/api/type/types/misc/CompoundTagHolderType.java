@@ -20,15 +20,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.viaversion.viaversion.api.minecraft.item.data;
+package com.viaversion.viaversion.api.type.types.misc;
 
-import com.viaversion.viaversion.api.minecraft.HolderSet;
-import com.viaversion.viaversion.api.minecraft.RegistryKey;
-import com.viaversion.viaversion.api.type.TransformingType;
-import com.viaversion.viaversion.api.type.Type;
-import com.viaversion.viaversion.api.type.types.misc.HolderSetType;
+import com.viaversion.nbt.tag.CompoundTag;
+import com.viaversion.viaversion.api.type.Types;
+import io.netty.buffer.ByteBuf;
 
-public record ProvidesBannerPatterns(HolderSet patterns) {
+public final class CompoundTagHolderType extends HolderType<CompoundTag> {
 
-    public static final Type<ProvidesBannerPatterns> TYPE = TransformingType.of(new HolderSetType(RegistryKey.of("banner_pattern")), ProvidesBannerPatterns.class, ProvidesBannerPatterns::new, ProvidesBannerPatterns::patterns);
+    @Override
+    public CompoundTag readDirect(final ByteBuf buffer) {
+        return Types.TRUSTED_COMPOUND_TAG.read(buffer);
+    }
+
+    @Override
+    public void writeDirect(final ByteBuf buffer, final CompoundTag value) {
+        Types.TRUSTED_COMPOUND_TAG.write(buffer, value);
+    }
 }
