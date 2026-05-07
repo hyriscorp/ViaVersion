@@ -77,7 +77,14 @@ public final class Protocol1_20_3To1_20_5 extends AbstractProtocol<ClientboundPa
     private final EntityPacketRewriter1_20_5 entityRewriter = new EntityPacketRewriter1_20_5(this);
     private final BlockItemPacketRewriter1_20_5 itemRewriter = new BlockItemPacketRewriter1_20_5(this);
     private final ParticleRewriter1_20_5 particleRewriter = new ParticleRewriter1_20_5(this);
-    private final TagRewriter<ClientboundPacket1_20_3> tagRewriter = new TagRewriter<>(this);
+    private final TagRewriter<ClientboundPacket1_20_3> tagRewriter = new TagRewriter<>(this) {
+        @Override
+        public void handleGeneric(final PacketWrapper wrapper) {
+            super.handleGeneric(wrapper);
+            wrapper.resetReader();
+            wrapper.user().put(new TagKeys(wrapper));
+        }
+    };
     private final ComponentRewriter1_20_5<ClientboundPacket1_20_3> componentRewriter = new ComponentRewriter1_20_5<>(this, VersionedTypes.V1_20_5.structuredData);
     private final BlockRewriter<ClientboundPacket1_20_3> blockRewriter = BlockRewriter.for1_20_2(this, ChunkType1_20_2::new);
 
@@ -190,7 +197,7 @@ public final class Protocol1_20_3To1_20_5 extends AbstractProtocol<ClientboundPa
             wrapper.cancel();
         });
 
-        registerClientbound(ClientboundPackets1_20_3.START_CONFIGURATION, wrapper -> wrapper.user().put(new AcknowledgedMessagesStorage()));
+        appendClientbound(ClientboundPackets1_20_3.START_CONFIGURATION, wrapper -> wrapper.user().put(new AcknowledgedMessagesStorage()));
 
         registerClientbound(State.LOGIN, ClientboundLoginPackets.LOGIN_FINISHED, wrapper -> {
             wrapper.passthrough(Types.UUID); // UUID
@@ -251,12 +258,6 @@ public final class Protocol1_20_3To1_20_5 extends AbstractProtocol<ClientboundPa
         cancelServerbound(ServerboundConfigurationPackets1_20_5.SELECT_KNOWN_PACKS);
         cancelServerbound(ServerboundPackets1_20_5.COOKIE_RESPONSE);
         cancelServerbound(ServerboundPackets1_20_5.DEBUG_SAMPLE_SUBSCRIPTION);
-    }
-
-    private void updateTags(final PacketWrapper wrapper) {
-        tagRewriter.handleGeneric(wrapper);
-        wrapper.resetReader();
-        wrapper.user().put(new TagKeys(wrapper));
     }
 
     private void fixChatAck(final PacketWrapper wrapper, final AcknowledgedMessagesStorage storage) {
